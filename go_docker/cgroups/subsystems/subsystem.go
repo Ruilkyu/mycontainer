@@ -14,3 +14,17 @@ type Subsystem interface {
 }
 
 
+// 通过不同的subsystem初始化实例，创建资源限制处理数组
+var (
+	SubsystemsIns = []Subsystem{
+		&CpusetSubSystem{},
+		&MemorySubSystem{},
+		&CpuSubSystem{},
+	}
+)
+
+
+
+
+
+
