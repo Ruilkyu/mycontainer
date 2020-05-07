@@ -17,3 +17,15 @@ root         1     0  0 17:32 pts/8    00:00:00 /bin/sh
 root         6     1  0 17:32 pts/8    00:00:00 ps -ef
 
 ```
+
+## 运行（增加路径寻找功能）
+```
+[root@YZ01-Prometheus-Grafana1-19 tmp]# ./go_docker run -it sh
+{"level":"info","msg":"command all is sh","time":"2020-05-07T17:42:29+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-07T17:42:29+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-07T17:42:29+08:00"}
+sh-4.2# ps -ef
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  0 17:42 pts/1    00:00:00 sh
+root         6     1  0 17:42 pts/1    00:00:00 ps -ef
+```
