@@ -32,10 +32,12 @@ func FindCgroupMountpoint(subsystem string) string {
 }
 
 
+
+
 // 查找cgroup在文件系统中的绝对路径
 func GetCgroupPath(subsystem string, cgroupPath string, autoCreate bool) (string, error) {
 	cgroupRoot := FindCgroupMountpoint(subsystem)
-	if _,err := os.Stat(path.Join(cgroupRoot, cgroupPath)); err == nil || (autoCreate && os.IsNotExist(err)) {
+	if _,err := os.Stat(path.Join(cgroupRoot, cgroupPath)); err == nil || autoCreate {
 		if os.IsNotExist(err) {
 			if err := os.Mkdir(path.Join(cgroupRoot, cgroupPath), 0755); err == nil {
 
@@ -48,4 +50,6 @@ func GetCgroupPath(subsystem string, cgroupPath string, autoCreate bool) (string
 		return "", fmt.Errorf("cgroup path error %v", err)
 	}
 }
+
+
 

@@ -15,6 +15,11 @@ type MemorySubSystem struct {
 }
 
 
+//返回cgroup名字
+func (s *MemorySubSystem) Name() string{
+	return "memory"
+}
+
 
 // 设置cgroupPath对应的cgroup的内存限制
 func (s *MemorySubSystem) Set(cgroupPath string, res *ResourceConfig) error{
@@ -55,10 +60,7 @@ func (s *MemorySubSystem) Remove(cgroupPath string) error {
 }
 
 
-//返回cgroup名字
-func (s *MemorySubSystem) Name() string{
-	return "memory"
-}
+
 
 
 
