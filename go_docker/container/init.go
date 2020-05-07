@@ -60,6 +60,7 @@ func setUpMount(){
 	pwd, err := os.Getwd()
 	if err != nil{
 		log.Errorf("Get current location error %v", err)
+		return
 	}
 	log.Infof("Current location is %s", pwd)
 	pivotRoot(pwd)
