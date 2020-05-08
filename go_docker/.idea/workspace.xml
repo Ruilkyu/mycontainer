@@ -3,7 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="2bc941e4-e3f1-4c47-8a2c-1fa9859aca59" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/container/container_process.go" beforeDir="false" afterPath="$PROJECT_DIR$/container/container_process.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/container/init.go" beforeDir="false" afterPath="$PROJECT_DIR$/container/init.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go_docker" beforeDir="false" afterPath="$PROJECT_DIR$/go_docker" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.go" beforeDir="false" afterPath="$PROJECT_DIR$/run.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"syscall"
 	log "github.com/sirupsen/logrus"
+	_"time"
 )
 
 //func NewParentProcess(tty bool, command string) *exec.Cmd {
@@ -40,6 +41,10 @@ func NewParentProcess(tty bool) (*exec.Cmd, *os.File){
 		cmd.Stderr = os.Stderr
 	}
 	cmd.ExtraFiles = []*os.File{readPipe}
+	mntURL := "/root/merged/"
+	rootURL := "/root/"
+	NewWorkSpace(rootURL, mntURL)
+	cmd.Dir = mntURL
 	return cmd, writePipe
 }
 
@@ -52,4 +57,117 @@ func NewPipe() (*os.File, *os.File, error){
 	}
 	return read, write, nil
 }
+
+// 创建一个AUFS系统作为容器的根目录
+func NewWorkSpace(rootURL string, mntURL string){
+	CreateReadOnlyLayer(rootURL)
+	CreateWriteLayer(rootURL)
+	CreateWorkLayer(rootURL)
+	CreateMountPoint(rootURL, mntURL)
+}
+
+func CreateReadOnlyLayer(rootURL string){
+	busyboxURL := rootURL + "busybox/"
+	busyboxTarURL := rootURL + "busybox.tar"
+	exist, err := PathExists(busyboxURL)
+	if err != nil {
+		log.Infof("Fail to judge whether dir %s exists. %v", busyboxURL, err)
+	}
+	if exist == false {
+		if err := os.Mkdir(busyboxURL, 0777); err != nil {
+			log.Errorf("Mkdir dir %s error. %v", busyboxURL, err)
+		}
+		if _, err := exec.Command("tar", "-xvf", busyboxTarURL, "-C", busyboxURL).CombinedOutput(); err != nil {
+			log.Errorf("Untar dir %s error %v", busyboxURL, err)
+		}
+	}
+}
+
+func CreateWorkLayer(rootURL string) {
+	workURL := rootURL + "workLayer/"
+	if err := os.Mkdir(workURL, 0777); err != nil {
+		log.Errorf("Mkdir dir %s error. %v", workURL, err)
+	}
+}
+
+
+func CreateWriteLayer(rootURL string) {
+	writeURL := rootURL + "writeLayer/"
+	if err := os.Mkdir(writeURL, 0777); err != nil {
+		log.Errorf("Mkdir dir %s error. %v", writeURL, err)
+	}
+}
+
+
+func CreateMountPoint(rootURL string, mntURL string) {
+	if err := os.Mkdir(mntURL, 0777); err != nil {
+		log.Errorf("Mkdir dir %s error. %v", mntURL, err)
+	}
+	lower := "lowerdir=" + rootURL + "busybox"
+	upper := "upperdir=" + rootURL + "writeLayer"
+	work := "workdir=" + rootURL + "workLayer"
+	parm := lower + "," + upper + "," + work
+	//cmd := exec.Command("mount", "-t", "aufs", "-o", dirs, "none", mntURL)
+	cmd := exec.Command("mount", "-t", "overlay", "overlay", "-o", parm, mntURL)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Errorf("%v", err)
+	}
+}
+
+// 当容器退出时删除AUFS系统
+func DeleteWorkSpace(rootURL string, mntURL string){
+	DeleteMountPoint(rootURL, mntURL)
+	DeleteWriteLayer(rootURL)
+	DeleteWorkLayer(rootURL)
+}
+
+
+func DeleteMountPoint(rootURL string, mntURL string){
+	cmd := exec.Command("umount", mntURL)
+	cmd.Stdout=os.Stdout
+	cmd.Stderr=os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Errorf("%v",err)
+	}
+
+	//time.Sleep(time.Duration(3)*time.Second)
+
+	if err := os.RemoveAll(mntURL); err != nil {
+		log.Errorf("Remove dir %s error %v", mntURL, err)
+	}
+}
+
+func DeleteWriteLayer(rootURL string) {
+	writeURL := rootURL + "writeLayer/"
+	if err := os.RemoveAll(writeURL); err != nil {
+		log.Errorf("Remove dir %s error %v", writeURL, err)
+	}
+}
+
+
+func DeleteWorkLayer(rootURL string) {
+	workURL := rootURL + "workLayer/"
+	if err := os.RemoveAll(workURL); err != nil {
+		log.Errorf("Remove dir %s error %v", workURL, err)
+	}
+}
+
+
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+
+
+
+
 
