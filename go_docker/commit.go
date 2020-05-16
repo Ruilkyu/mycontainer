@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"os/exec"
-	log "github.com/sirupsen/logrus"
 )
 
 func commitContainer(imageName string){

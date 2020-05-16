@@ -5,9 +5,27 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	_"time"
 )
+
+
+var (
+	RUNNING    string = "running"
+	STOP       string = "stopped"
+	Exit       string = "exited"
+	DefaultInfoLocation    string = "var/run/mycontainer/%s/"
+	ConfigName string = "config.json"
+)
+
+type ContainerInfo struct{
+	Pid           string `json:"pid"`  //容器init进程在宿主机的PID
+	Id            string `json:"id"`
+	Name          string `json:"name"`
+	Command       string `json:"command"` //容器init的运行命令
+    CreatedTime   string `json:"createdTime"`
+	Status        string `json:"status"`
+}
 
 //func NewParentProcess(tty bool, command string) *exec.Cmd {
 //	args := []string{"init", command}
@@ -227,6 +245,8 @@ func DeleteMountPointWithVolume(rootURL string, mntURL string, volumeURLs []stri
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		log.Errorf("Umount mountpoint failed. %v", err)
+	}else{
+		log.Infof("Umount mountpoint success")
 	}
 	// 删除文件系统挂载点
 	if err := os.RemoveAll(mntURL); err != nil {
@@ -240,8 +260,12 @@ func DeleteMountPoint(rootURL string, mntURL string){
 	cmd := exec.Command("umount", mntURL)
 	cmd.Stdout=os.Stdout
 	cmd.Stderr=os.Stderr
+	a := exec.Command("umount", mntURL)
+	a.Run()
 	if err := cmd.Run(); err != nil {
 		log.Errorf("%v",err)
+	}else{
+		log.Infof("Umount mountpoint success")
 	}
 
 	//time.Sleep(time.Duration(3)*time.Second)

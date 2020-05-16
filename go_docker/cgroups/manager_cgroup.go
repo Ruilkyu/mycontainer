@@ -2,7 +2,7 @@ package cgroups
 
 import(
 	"go_docker/cgroups/subsystems"
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 )
 
 type CgroupManager struct {

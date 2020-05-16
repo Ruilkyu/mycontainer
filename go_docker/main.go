@@ -1,7 +1,7 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 	"os"
 )
@@ -17,6 +17,7 @@ func main(){
 		initCommand,
 		runCommand,
 		commitCommand,
+		listCommand,
 	}
 
 	app.Before = func(context *cli.Context) error {

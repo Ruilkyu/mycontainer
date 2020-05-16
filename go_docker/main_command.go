@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 	"go_docker/container"
 	"go_docker/cgroups/subsystems"
@@ -32,6 +32,14 @@ var runCommand = cli.Command{
 			Name: "v",
 			Usage: "volume",
 		},
+		cli.BoolFlag{
+			Name: "d",
+			Usage: "detach container",
+		},
+		cli.StringFlag{
+			Name: "name",
+			Usage: "container name",
+		},
 	},
 
 	Action: func(context *cli.Context) error {
@@ -44,14 +52,23 @@ var runCommand = cli.Command{
 		}
 		//cmd := context.Args().Get(0)
 		tty := context.Bool("it")
+		detach := context.Bool("d")
+
 		resConf := &subsystems.ResourceConfig{
 			MemoryLimit: context.String("m"),
 			CpuSet: context.String("cpuset"),
 			CpuShare: context.String("cpushare"),
 		}
 
+		if detach && tty {
+			return fmt.Errorf("it and d parameter can not both provided")
+		}
+
 		volume := context.String("v")
-		Run(tty, cmdArray, resConf, volume)
+
+		log.Infof("createTty %v", tty)
+		containerName := context.String("name")
+		Run(tty, cmdArray, resConf, volume,containerName)
 		return nil
 	},
 }
@@ -79,6 +96,16 @@ var commitCommand = cli.Command{
 		}
 		imageName := context.Args().Get(0)
 		commitContainer(imageName)
+		return nil
+	},
+}
+
+
+var listCommand = cli.Command{
+	Name:  "ps",
+	Usage: "list all the containers",
+	Action: func(context *cli.Context) error {
+		ListContainers()
 		return nil
 	},
 }

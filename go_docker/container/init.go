@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -119,6 +119,7 @@ func setUpMount(){
 
 func readUserCommand() []string{
 	pipe := os.NewFile(uintptr(3), "pipe")
+	defer pipe.Close()
 	msg, err := ioutil.ReadAll(pipe)
 	if err != nil{
 		log.Errorf("init read pipe error %v", err)

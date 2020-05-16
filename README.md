@@ -75,3 +75,19 @@ busybox  merged  workLayer  writeLayer
 /root/image.tar[root@yangzhou010010006012 srv]# ls /root
 busybox  image.tar  merged  workLayer  writeLayer
 ```
+## 运行（增加ps功能）
+```
+终端1：
+[root@yangzhou010010006012 srv]# ./go_docker run -it sh
+{"level":"info","msg":"createTty true","time":"2020-05-16T21:15:21+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-16T21:15:21+08:00"}
+{"level":"info","msg":"Current location is /root/merged","time":"2020-05-16T21:15:21+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-16T21:15:21+08:00"}
+sh-4.2#
+终端2：
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME         PID         STATUS      COMMAND     CREATED
+8329068587   8329068587   32493       running     sh          2020-05-16 21:15:21
+[root@yangzhou010010006012 srv]# cat /var/run/mycontainer/8329068587/config.json
+{"pid":"32493","id":"8329068587","name":"8329068587","command":"sh","createdTime":"2020-05-16 21:15:21","status":"running"}
+```
