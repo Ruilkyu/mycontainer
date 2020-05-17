@@ -36,6 +36,10 @@ var runCommand = cli.Command{
 			Name: "d",
 			Usage: "detach container",
 		},
+		cli.BoolFlag{
+			Name: "l",
+			Usage: "log file container",
+		},
 		cli.StringFlag{
 			Name: "name",
 			Usage: "container name",
@@ -65,10 +69,11 @@ var runCommand = cli.Command{
 		}
 
 		volume := context.String("v")
+		logfile := context.Bool("l")
 
 		log.Infof("createTty %v", tty)
 		containerName := context.String("name")
-		Run(tty, cmdArray, resConf, volume,containerName)
+		Run(tty, cmdArray, resConf, volume,containerName,logfile)
 		return nil
 	},
 }
@@ -106,6 +111,20 @@ var listCommand = cli.Command{
 	Usage: "list all the containers",
 	Action: func(context *cli.Context) error {
 		ListContainers()
+		return nil
+	},
+}
+
+
+var logCommand = cli.Command{
+	Name: "logs",
+	Usage: "print logs of a container",
+	Action: func(context *cli.Context) error {
+		if len(context.Args()) < 1 {
+			return fmt.Errorf("Please input your container name")
+		}
+		containerName := context.Args().Get(0)
+		logContainer(containerName)
 		return nil
 	},
 }

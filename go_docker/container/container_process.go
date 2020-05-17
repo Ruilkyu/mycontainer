@@ -1,6 +1,7 @@
 package container
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,11 +12,12 @@ import (
 
 
 var (
-	RUNNING    string = "running"
-	STOP       string = "stopped"
-	Exit       string = "exited"
-	DefaultInfoLocation    string = "var/run/mycontainer/%s/"
-	ConfigName string = "config.json"
+	RUNNING                string = "running"
+	STOP                   string = "stopped"
+	Exit                   string = "exited"
+	DefaultInfoLocation    string = "/var/run/mycontainer/%s/"
+	ConfigName             string = "config.json"
+	ContainerLogFile	   string = "container.log"
 )
 
 type ContainerInfo struct{
@@ -44,7 +46,7 @@ type ContainerInfo struct{
 
 
 
-func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File){
+func NewParentProcess(tty bool, volume string, containerName string, logfile bool) (*exec.Cmd, *os.File){
 	readPipe, writePipe, err := NewPipe()
 	if err != nil {
 		log.Errorf("New pipe error %v", err)
@@ -54,10 +56,26 @@ func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File){
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET | syscall.CLONE_NEWIPC,
 	}
-	if tty{
+
+	dirURL := fmt.Sprintf(DefaultInfoLocation, containerName)
+	if err := os.MkdirAll(dirURL, 0622); err != nil {
+		log.Errorf("NewParentProcess mkdir %s error %v", dirURL, err)
+		return nil, nil
+	}
+	stdLogFilePath := dirURL + ContainerLogFile
+	stdLogFile, err := os.Create(stdLogFilePath)
+	if err != nil {
+		log.Errorf("NewParentProcess create file %s error %v", stdLogFilePath, err)
+		return nil, nil
+	}
+
+	if tty  && !logfile{
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+	} else if tty  && logfile{
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = stdLogFile
 	}
 	cmd.ExtraFiles = []*os.File{readPipe}
 	mntURL := "/root/merged/"

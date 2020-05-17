@@ -91,3 +91,22 @@ ID           NAME         PID         STATUS      COMMAND     CREATED
 [root@yangzhou010010006012 srv]# cat /var/run/mycontainer/8329068587/config.json
 {"pid":"32493","id":"8329068587","name":"8329068587","command":"sh","createdTime":"2020-05-16 21:15:21","status":"running"}
 ```
+## 运行（增加logs功能）
+```
+终端1：
+root@yangzhou010010006012 srv]# ./go_docker run -it -l --name hi sh
+{"level":"info","msg":"createTty true","time":"2020-05-17T13:32:53+08:00"}
+{"level":"error","msg":"Mkdir dir /root/writeLayer/ error. mkdir /root/writeLayer/: file exists","time":"2020-05-17T13:32:53+08:00"}
+{"level":"error","msg":"Mkdir dir /root/workLayer/ error. mkdir /root/workLayer/: file exists","time":"2020-05-17T13:32:53+08:00"}
+{"level":"error","msg":"Mkdir dir /root/merged/ error. mkdir /root/merged/: file exists","time":"2020-05-17T13:32:53+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-17T13:32:53+08:00"}
+
+终端2：
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME        PID         STATUS      COMMAND     CREATED
+6593990918   hi          9329        running     sh          2020-05-17 13:32:53
+[root@yangzhou010010006012 srv]# ./go_docker logs hi
+{"level":"info","msg":"init come on","time":"2020-05-17T13:32:53+08:00"}
+{"level":"info","msg":"Current location is /root/merged","time":"2020-05-17T13:32:53+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-17T13:32:53+08:00"}
+```
