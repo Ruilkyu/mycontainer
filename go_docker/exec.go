@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"go_docker/container"
-	"go_docker/nsenter"
+	_ "go_docker/nsenter"
 	"os"
 	"os/exec"
 	"strings"
+        log "github.com/Sirupsen/logrus"
 )
 
 const ENV_EXEC_PID = "mycontainer_pid"
