@@ -27,8 +27,13 @@ import (
 
 
 
-func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, logfile bool) {
-	parent, writePipe := container.NewParentProcess(tty, volume, containerName,logfile)
+func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, logfile bool, imageName string) {
+	containerID := randStringBytes(10)
+	if containerName == "" {
+		containerName = containerID
+	}
+
+	parent, writePipe := container.NewParentProcess(tty, volume, containerName,logfile, imageName)
 	if parent == nil {
 		log.Errorf("New parent process error")
 		return
@@ -38,7 +43,7 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 	}
 
 	//record container info
-	containerName, err := recordContainerInfo(parent.Process.Pid, comArray, containerName)
+	containerName, err := recordContainerInfo(parent.Process.Pid, comArray, containerName, containerID, volume)
 	if err != nil {
 		log.Errorf("Record container info error %v", err)
 		return
@@ -53,10 +58,8 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 
 	 if tty{
 		 parent.Wait()
-		 mntURL := "/root/merged/"
-		 rootURL := "/root/"
-		 container.DeleteWorkSpace(rootURL, mntURL, volume)
 		 deleteContainerInfo(containerName)
+		 container.DeleteWorkSpace(volume, containerName)
 		 os.Exit(0)
 	 }
 }
@@ -88,14 +91,10 @@ func randStringBytes(n int) string{
 	return string(b)
 }
 
-func recordContainerInfo(containerPID int, commandArray []string, containerName string)(string,error){
-	id := randStringBytes(10)
+func recordContainerInfo(containerPID int, commandArray []string, containerName string, id string, volume string)(string,error){
 	createTime := time.Now().Format("2006-01-02 15:04:05")
 	command := strings.Join(commandArray, "")
 
-	if containerName == ""{
-		containerName = id
-	}
 	containerInfo := &container.ContainerInfo{
 		Id: id,
 		Pid: strconv.Itoa(containerPID),
@@ -103,6 +102,7 @@ func recordContainerInfo(containerPID int, commandArray []string, containerName 
 		CreatedTime: createTime,
 		Status: container.RUNNING,
 		Name: containerName,
+		Volume: volume,
 	}
 
 	//容器信息对象的json序列化为字符串

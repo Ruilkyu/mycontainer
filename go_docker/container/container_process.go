@@ -18,6 +18,9 @@ var (
 	DefaultInfoLocation    string = "/var/run/mycontainer/%s/"
 	ConfigName             string = "config.json"
 	ContainerLogFile	   string = "container.log"
+	RootUrl                string = "/root"
+	MntUrl                 string = "/root/mnt/%s"
+	WriteLayerUrl          string = "/root/writeLayer/%s"
 )
 
 type ContainerInfo struct{
@@ -27,6 +30,7 @@ type ContainerInfo struct{
 	Command       string `json:"command"` //容器init的运行命令
     CreatedTime   string `json:"createdTime"`
 	Status        string `json:"status"`
+	Volume        string `json:"volume"`
 }
 
 //func NewParentProcess(tty bool, command string) *exec.Cmd {
@@ -46,7 +50,7 @@ type ContainerInfo struct{
 
 
 
-func NewParentProcess(tty bool, volume string, containerName string, logfile bool) (*exec.Cmd, *os.File){
+func NewParentProcess(tty bool, volume string, containerName string, logfile bool, imageName string) (*exec.Cmd, *os.File){
 	readPipe, writePipe, err := NewPipe()
 	if err != nil {
 		log.Errorf("New pipe error %v", err)
@@ -78,9 +82,7 @@ func NewParentProcess(tty bool, volume string, containerName string, logfile boo
 		cmd.Stdout = stdLogFile
 	}
 	cmd.ExtraFiles = []*os.File{readPipe}
-	mntURL := "/root/merged/"
-	rootURL := "/root/"
-	NewWorkSpace(rootURL, mntURL, volume)
+	NewWorkSpace(volume, imageName, containerName)
 	cmd.Dir = mntURL
 	return cmd, writePipe
 }

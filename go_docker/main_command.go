@@ -59,6 +59,10 @@ var runCommand = cli.Command{
 		tty := context.Bool("it")
 		detach := context.Bool("d")
 
+		//get image name
+		imageName := cmdArray[0]
+		cmdArray = cmdArray[1:]
+
 		resConf := &subsystems.ResourceConfig{
 			MemoryLimit: context.String("m"),
 			CpuSet: context.String("cpuset"),
@@ -74,7 +78,7 @@ var runCommand = cli.Command{
 
 		log.Infof("createTty %v", tty)
 		containerName := context.String("name")
-		Run(tty, cmdArray, resConf, volume,containerName,logfile)
+		Run(tty, cmdArray, resConf, volume,containerName,logfile,imageName)
 		return nil
 	},
 }
