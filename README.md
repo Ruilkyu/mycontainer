@@ -2,7 +2,10 @@
 实现自己的容器引擎
 ## 编译
 ```
+不编译cgo:
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
+编译cgo:
+CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build .
 ```
 
 ## 运行
