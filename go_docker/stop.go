@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"go_docker/container"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"syscall"
 )
@@ -61,5 +62,22 @@ func StopContainer(containerName string) {
 	// 将修改后的信息重新写入容器文件
 	if err := ioutil.WriteFile(configFilePath, newContentBytes, 0622); err != nil {
 		log.Errorf("Write file %s error", configFilePath, err)
+	}
+}
+
+func RemoveContainer(containerName string) {
+	containerInfo, err := GetContainerInfoByName(containerName)
+	if err != nil {
+		log.Errorf("Get container %s info error %v", containerName, err)
+		return
+	}
+	if containerInfo.Status != container.STOP {
+		log.Errorf("Couldn't remove running container")
+		return
+	}
+	dirURL := fmt.Sprintf(container.DefaultInfoLocation, containerName)
+	if err := os.RemoveAll(dirURL); err != nil {
+		log.Errorf("Remove file %s error %v", dirURL, err)
+		return
 	}
 }

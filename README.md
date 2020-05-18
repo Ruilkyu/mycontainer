@@ -158,3 +158,35 @@ ID           NAME          PID         STATUS      COMMAND     CREATED
 ID           NAME        PID         STATUS      COMMAND     CREATED
 6593990918   hi          9329        running     sh          2020-05-17 13:32:53
 ```
+## 运行（增加rm功能）
+```
+终端1：
+[root@yangzhou010010006012 srv]# ./go_docker run -it --name container sh
+{"level":"info","msg":"createTty true","time":"2020-05-18T16:08:25+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-18T16:08:25+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-18T16:08:25+08:00"}
+{"level":"info","msg":"Current location is /root/merged","time":"2020-05-18T16:08:25+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-18T16:08:25+08:00"}
+sh-4.2#
+终端2：
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME        PID         STATUS      COMMAND     CREATED
+6176477697   container   30494       running     sh          2020-05-18 16:08:25
+6593990918   hi          9329        running     sh          2020-05-17 13:32:53
+[root@yangzhou010010006012 srv]# ./go_docker rm container
+{"level":"error","msg":"Couldn't remove running container","time":"2020-05-18T16:08:55+08:00"}
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME        PID         STATUS      COMMAND     CREATED
+6176477697   container   30494       running     sh          2020-05-18 16:08:25
+6593990918   hi          9329        running     sh          2020-05-17 13:32:53
+[root@yangzhou010010006012 srv]# ./go_docker stop container
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME        PID         STATUS      COMMAND     CREATED
+6176477697   container               stopped     sh          2020-05-18 16:08:25
+6593990918   hi          9329        running     sh          2020-05-17 13:32:53
+[root@yangzhou010010006012 srv]# ./go_docker rm container
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME        PID         STATUS      COMMAND     CREATED
+6593990918   hi          9329        running     sh          2020-05-17 13:32:53
+```
+
