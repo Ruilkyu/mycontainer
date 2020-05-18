@@ -140,3 +140,21 @@ ID           NAME          PID         STATUS      COMMAND     CREATED
 {"level":"info","msg":"command sh","time":"2020-05-18T13:42:46+08:00"}
 sh-4.2#
 ```
+## 运行（增加stop功能）
+```
+终端1：
+./go_docker run -it --name mycontainer top
+终端2：
+[root@yangzhou010010006012 srv]# ps -ef | grep top
+root      8478 44941  0 14:33 pts/1    00:00:00 ./go_docker run -it --name mycontainer top
+root      8488  8478  0 14:33 pts/1    00:00:00 top
+root      8509 44765  0 14:33 pts/0    00:00:00 grep --color=auto top
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME          PID         STATUS      COMMAND     CREATED
+6593990918   hi            9329        running     sh          2020-05-17 13:32:53
+6367279090   mycontainer   8488        running     top         2020-05-18 14:33:26
+[root@yangzhou010010006012 srv]# ./go_docker stop mycontainer
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME        PID         STATUS      COMMAND     CREATED
+6593990918   hi          9329        running     sh          2020-05-17 13:32:53
+```
