@@ -189,4 +189,43 @@ ID           NAME        PID         STATUS      COMMAND     CREATED
 ID           NAME        PID         STATUS      COMMAND     CREATED
 6593990918   hi          9329        running     sh          2020-05-17 13:32:53
 ```
-
+## 运行（增加容器制作镜像功能）
+```
+终端1：
+./go_docker run -it --name container1 -v /root/from1:to1 busybox sh
+{"level":"info","msg":"createTty true","time":"2020-05-19T14:05:52+08:00"}
+{"level":"info","msg":"NewWorkSpace volume urls [\"/root/from1\" \"to1\"]","time":"2020-05-19T14:05:52+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-19T14:05:52+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-19T14:05:52+08:00"}
+{"level":"info","msg":"Current location is /root/mnt/container1","time":"2020-05-19T14:05:52+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-19T14:05:52+08:00"}
+sh-4.2#
+终端2：
+./go_docker run -it --name container2 -v /root/from2:to2 busybox sh
+{"level":"info","msg":"createTty true","time":"2020-05-19T14:12:47+08:00"}
+{"level":"info","msg":"NewWorkSpace volume urls [\"/root/from2\" \"to2\"]","time":"2020-05-19T14:12:47+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-19T14:12:47+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-19T14:12:47+08:00"}
+{"level":"info","msg":"Current location is /root/mnt/container2","time":"2020-05-19T14:12:47+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-19T14:12:47+08:00"}
+sh-4.2#
+终端3：
+[root@yangzhou010010006012 ~]# ls /root
+busybox.tar  from1  from2  mnt  readLayer  workLayer  writeLayer
+[root@yangzhou010010006012 ~]# ls /root/mnt/
+container1  container2
+[root@yangzhou010010006012 ~]# ls /root/mnt/container1
+bin  dev  etc  home  proc  root  sys  tmp  to1  usr  var
+[root@yangzhou010010006012 ~]# ls /root/mnt/container2
+bin  dev  etc  home  proc  root  sys  tmp  to2  usr  var
+[root@yangzhou010010006012 ~]# ls /root/readLayer/
+busybox
+[root@yangzhou010010006012 ~]# ls /root/workLayer/
+container1  container2
+[root@yangzhou010010006012 ~]# ls /root/writeLayer/
+container1  container2
+将容器制作镜像：
+./go_docker commit container1 image1
+[root@yangzhou010010006012 srv]# ls /root
+busybox.tar  from1  from2  image1.tar  mnt  readLayer  workLayer  writeLayer
+```
