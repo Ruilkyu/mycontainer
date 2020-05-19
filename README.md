@@ -37,7 +37,7 @@ root         1     0  0 17:42 pts/1    00:00:00 sh
 root         6     1  0 17:42 pts/1    00:00:00 ps -ef
 ```
 
-## 运行（增加volume）
+## 运行（增加volume功能）
 ```
 [root@yangzhou010010006017 ~]# ./go_docker run -it -v /root/volume:/containerVolume sh
 {"level":"info","msg":"[\"/root/volume\" \"/containerVolume\"]","time":"2020-05-08T20:11:51+08:00"}
@@ -229,7 +229,7 @@ container1  container2
 [root@yangzhou010010006012 srv]# ls /root
 busybox.tar  from1  from2  image1.tar  mnt  readLayer  workLayer  writeLayer
 ```
-## 运行(增加环境变量)
+## 运行(增加环境变量功能)
 ```
 终端1：
 ./go_docker run -it --name envcontainer -e test1=123 -e test2=456 busybox sh
