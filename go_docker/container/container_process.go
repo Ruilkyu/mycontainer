@@ -51,7 +51,7 @@ type ContainerInfo struct{
 
 
 
-func NewParentProcess(tty bool, volume string, containerName string, logfile bool, imageName string) (*exec.Cmd, *os.File){
+func NewParentProcess(tty bool, volume string, containerName string, logfile bool, imageName string, envSlice []string) (*exec.Cmd, *os.File){
 	readPipe, writePipe, err := NewPipe()
 	if err != nil {
 		log.Errorf("New pipe error %v", err)
@@ -83,6 +83,7 @@ func NewParentProcess(tty bool, volume string, containerName string, logfile boo
 		cmd.Stdout = stdLogFile
 	}
 	cmd.ExtraFiles = []*os.File{readPipe}
+	cmd.Env = append(os.Environ(), envSlice...)
 	NewWorkSpace(volume, imageName, containerName)
 	cmd.Dir = fmt.Sprintf(MntUrl, containerName)
 	return cmd, writePipe

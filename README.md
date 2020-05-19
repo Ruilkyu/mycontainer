@@ -229,3 +229,28 @@ container1  container2
 [root@yangzhou010010006012 srv]# ls /root
 busybox.tar  from1  from2  image1.tar  mnt  readLayer  workLayer  writeLayer
 ```
+## 运行(增加环境变量)
+```
+终端1：
+./go_docker run -it --name envcontainer -e test1=123 -e test2=456 busybox sh
+{"level":"info","msg":"createTty true","time":"2020-05-19T16:27:01+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-19T16:27:01+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-19T16:27:01+08:00"}
+{"level":"info","msg":"Current location is /root/mnt/envcontainer","time":"2020-05-19T16:27:01+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-19T16:27:01+08:00"}
+sh-4.2# env | grep test
+test1=123
+test2=456
+终端2：
+[root@yangzhou010010006012 srv]# ./go_docker ps
+ID           NAME           PID         STATUS      COMMAND     CREATED
+8015717058   envcontainer   49115       running     sh          2020-05-19 16:27:01
+6593990918   hi             9329        running     sh          2020-05-17 13:32:53
+[root@yangzhou010010006012 srv]# ./go_docker exec envcontainer sh
+{"level":"info","msg":"container pid 49115","time":"2020-05-19T16:29:07+08:00"}
+{"level":"info","msg":"command sh","time":"2020-05-19T16:29:07+08:00"}
+sh-4.2# env | grep test
+test1=123
+test2=456
+```
+
