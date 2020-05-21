@@ -263,5 +263,58 @@ ip a
     inet 10.200.0.1/24 brd 10.200.0.255 scope global testbridge1
        valid_lft forever preferred_lft forever
 ```
+## 运行（增加容器互通功能）
+```
+终端1：
+[root@yangzhou010010006012 srv]# ./go_docker run -it -net testbridge1 busybox sh
+{"level":"info","msg":"createTty true","time":"2020-05-21T19:32:28+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-21T19:32:28+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-21T19:32:28+08:00"}
+{"level":"info","msg":"Current location is /root/mnt/6252247727","time":"2020-05-21T19:32:28+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-21T19:32:28+08:00"}
+sh-4.2# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+7: cif-62522@if8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 72:c9:16:04:6f:74 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.200.0.2/24 brd 10.200.0.255 scope global cif-62522
+       valid_lft forever preferred_lft forever
+    inet6 fe80::70c9:16ff:fe04:6f74/64 scope link
+       valid_lft forever preferred_lft forever
+终端2：
+[root@yangzhou010010006012 srv]# ./go_docker run -it -net testbridge1 busybox sh
+{"level":"info","msg":"createTty true","time":"2020-05-21T19:32:55+08:00"}
+{"level":"info","msg":"init come on","time":"2020-05-21T19:32:55+08:00"}
+{"level":"info","msg":"command all is sh","time":"2020-05-21T19:32:55+08:00"}
+{"level":"info","msg":"Current location is /root/mnt/4334394710","time":"2020-05-21T19:32:55+08:00"}
+{"level":"info","msg":"find path /usr/bin/sh","time":"2020-05-21T19:32:55+08:00"}
+sh-4.2# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+9: cif-43343@if10: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether fa:0e:7d:30:b4:04 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.200.0.3/24 brd 10.200.0.255 scope global cif-43343
+       valid_lft forever preferred_lft forever
+    inet6 fe80::f80e:7dff:fe30:b404/64 scope link
+       valid_lft forever preferred_lft forever
+终端1访问终端2：
+sh-4.2# ping 10.200.0.3
+PING 10.200.0.3 (10.200.0.3) 56(84) bytes of data.
+64 bytes from 10.200.0.3: icmp_seq=1 ttl=64 time=0.125 ms
+64 bytes from 10.200.0.3: icmp_seq=2 ttl=64 time=0.056 ms
+64 bytes from 10.200.0.3: icmp_seq=3 ttl=64 time=0.056 ms
+^C
+--- 10.200.0.3 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 1999ms
+rtt min/avg/max/mdev = 0.056/0.079/0.125/0.032 ms
+```
 
 
