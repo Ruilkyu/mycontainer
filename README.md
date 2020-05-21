@@ -253,4 +253,15 @@ sh-4.2# env | grep test
 test1=123
 test2=456
 ```
+## 运行（增加创建网络功能）
+```
+./go_docker network create --driver bridge --subnet 10.200.0.1/24 testbridge1
+查看网络：
+ip a
+6: testbridge1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/ether da:a5:ee:80:a5:18 brd ff:ff:ff:ff:ff:ff
+    inet 10.200.0.1/24 brd 10.200.0.255 scope global testbridge1
+       valid_lft forever preferred_lft forever
+```
+
 
