@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"syscall"
@@ -32,6 +32,7 @@ type ContainerInfo struct{
     CreatedTime   string `json:"createdTime"`
 	Status        string `json:"status"`
 	Volume        string `json:"volume"`
+	PortMapping   []string `json:"portmapping"`    //端口映射
 }
 
 //func NewParentProcess(tty bool, command string) *exec.Cmd {

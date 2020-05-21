@@ -5,11 +5,16 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	log "github.com/sirupsen/logrus"
+	"github.com/vishvananda/netlink"
+	"github.com/vishvananda/netns"
+	"runtime"
 	"strings"
-	log "github.com/Sirupsen/logrus"
 	"text/tabwriter"
+	"go_docker/container"
 )
 
 var (
@@ -81,20 +86,20 @@ func (nw *Network) dump(dumpPath string) error {
 	// 打开保存到文件，参数：存在内容则清空、只写入、不存在则创建
 	nwFile, err := os.OpenFile(nwPath, os.O_TRUNC | os.O_WRONLY | os.O_CREATE, 0644)
 	if err != nil {
-		logrus.Errorf("error：", err)
+		log.Errorf("error：", err)
 		return err
 	}
 	defer nwFile.Close()
     // 序列化网络对象到json的字符串
 	nwJson, err := json.Marshal(nw)
 	if err != nil {
-		logrus.Errorf("error：", err)
+		log.Errorf("error：", err)
 		return err
 	}
     // 将网络对象的字符串写入到文件中
 	_, err = nwFile.Write(nwJson)
 	if err != nil {
-		logrus.Errorf("error：", err)
+		log.Errorf("error：", err)
 		return err
 	}
 	return nil
@@ -117,7 +122,7 @@ func (nw *Network) load(dumpPath string) error {
     //通过json字符串反序列化出网络对象
 	err = json.Unmarshal(nwJson[:n], nw)
 	if err != nil {
-		logrus.Errorf("Error load nw info", err)
+		log.Errorf("Error load nw info", err)
 		return err
 	}
 	return nil
@@ -143,16 +148,21 @@ func Connect(networkName string, cinfo *container.ContainerInfo) error {
 		Network: network,
 		PortMapping: cinfo.PortMapping,
 	}
-	// 调用网络驱动挂载和配置网络端点
+	// 调用网络对应的网络驱动挂载和配置网络端点
 	if err = drivers[network.Driver].Connect(network, ep); err != nil {
 		return err
 	}
-	// 到容器的namespace配置容器网络设备IP地址和路由
+	// 到容器的namespace配置容器网络、设备IP地址和路由
 	if err = configEndpointIpAddressAndRoute(ep, cinfo); err != nil {
 		return err
 	}
     //配置容器到宿主机的端口映射
 	return configPortMapping(ep, cinfo)
+}
+
+// 离开指定网络
+func Disconnect(networkName string, cinfo *container.ContainerInfo) error {
+	return nil
 }
 
 
@@ -203,7 +213,7 @@ func ListNetwork() {
 	}
 	// 输出到标准输出
 	if err := w.Flush(); err != nil {
-		logrus.Errorf("Flush error %v", err)
+		log.Errorf("Flush error %v", err)
 		return
 	}
 }
@@ -240,4 +250,107 @@ func (nw *Network) remove(dumpPath string) error {
 		// 移除这个网络对应的配置文件
 		return os.Remove(path.Join(dumpPath, nw.Name))
 	}
+}
+
+// 配置网络设备及路由
+func configEndpointIpAddressAndRoute(ep *Endpoint, cinfo *container.ContainerInfo) error {
+	// 获取veth另一端
+	peerLink, err := netlink.LinkByName(ep.Device.PeerName)
+	if err != nil {
+		return fmt.Errorf("fail config endpoint: %v", err)
+	}
+	// 将容器的网络端点加入到容器的网络空间
+	defer enterContainerNetns(&peerLink, cinfo)()
+    // 获取容器的ip地址及网段，用于配置容器的内部接口
+	interfaceIP := *ep.Network.IpRange
+	interfaceIP.IP = ep.IPAddress
+    // 设置容器内veth端点到你ip
+	if err = setInterfaceIP(ep.Device.PeerName, interfaceIP.String()); err != nil {
+		return fmt.Errorf("%v,%s", ep.Network, err)
+	}
+    // 启动容器内veth端点
+	if err = setInterfaceUP(ep.Device.PeerName); err != nil {
+		return err
+	}
+    // 启动lo网卡，开启127.0.0.1访问
+	if err = setInterfaceUP("lo"); err != nil {
+		return err
+	}
+    // 容器内的外部请求都通过容器内的veth端点访问
+	_, cidr, _ := net.ParseCIDR("0.0.0.0/0")
+
+	defaultRoute := &netlink.Route{
+		LinkIndex: peerLink.Attrs().Index,
+		Gw: ep.Network.IpRange.IP,
+		Dst: cidr,
+	}
+    // 添加路由到容器的网络空间
+	if err = netlink.RouteAdd(defaultRoute); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 进入容器的网络命名空间（net namespace）
+func enterContainerNetns(enLink *netlink.Link, cinfo *container.ContainerInfo) func() {
+	// 找到容器的网络命名空间，打开/proc/[pid]/ns/net文件的文件描述符就可以操作net namespace
+	f, err := os.OpenFile(fmt.Sprintf("/proc/%s/ns/net", cinfo.Pid), os.O_RDONLY, 0)
+	if err != nil {
+		log.Errorf("error get container net namespace, %v", err)
+	}
+    // 获取文件句柄
+	nsFD := f.Fd()
+	// 锁定当前程序执行的线程
+	runtime.LockOSThread()
+
+	// 把网络端点veth peer另外一端移到容器的namespace中
+	if err = netlink.LinkSetNsFd(*enLink, int(nsFD)); err != nil {
+		log.Errorf("error set link netns , %v", err)
+	}
+
+	// 获取当前的网络namespace
+	origns, err := netns.Get()
+	if err != nil {
+		log.Errorf("error get current netns, %v", err)
+	}
+
+	// 设置当前进程到新的网络namespace，并在函数执行完成之后再恢复到之前的namespace
+	if err = netns.Set(netns.NsHandle(nsFD)); err != nil {
+		log.Errorf("error set netns, %v", err)
+	}
+	return func () {
+		// 恢复到之前获取到的之前的网络命名空间
+		netns.Set(origns)
+		// 关闭namespace文件
+		origns.Close()
+		// 取消对当前程序的线程锁定
+		runtime.UnlockOSThread()
+		// 关闭namespace文件
+		f.Close()
+	}
+}
+
+// 配置端口映射
+func configPortMapping(ep *Endpoint, cinfo *container.ContainerInfo) error {
+	// 遍历容器端口映射列表
+	for _, pm := range ep.PortMapping {
+		// 分成宿主机的端口和容器的端口
+		portMapping :=strings.Split(pm, ":")
+		if len(portMapping) != 2 {
+			log.Errorf("port mapping format error, %v", pm)
+			continue
+		}
+		// 配置iptables的prerouting中的dnat
+		iptablesCmd := fmt.Sprintf("-t nat -A PREROUTING -p tcp -m tcp --dport %s -j DNAT --to-destination %s:%s",
+			portMapping[0], ep.IPAddress.String(), portMapping[1])
+		cmd := exec.Command("iptables", strings.Split(iptablesCmd, " ")...)
+		//err := cmd.Run()
+		output, err := cmd.Output()
+		if err != nil {
+			log.Errorf("iptables Output, %v", output)
+			continue
+		}
+	}
+	return nil
 }

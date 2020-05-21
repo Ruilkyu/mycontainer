@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 //存放IP地址分配信息
@@ -119,3 +119,35 @@ func (ipam *IPAM) Allocate(subnet *net.IPNet) (ip net.IP, err error) {
 	ipam.dump()
 	return
 }
+
+// 地址释放
+func (ipam *IPAM) Release(subnet *net.IPNet, ipaddr *net.IP) error {
+	ipam.Subnets = &map[string]string{}
+	// 存放网段中地址分配信息的数组
+	_, subnet, _ = net.ParseCIDR(subnet.String())
+    // 从文件中加载网段的分配信息
+	err := ipam.load()
+	if err != nil {
+		log.Errorf("Error dump allocation info, %v", err)
+	}
+    // 计算ip地址在网段位图数组索引位置
+	c := 0
+	// 将ip地址转换成4个字节的表示方式
+	releaseIP := ipaddr.To4()
+	// 由于ip地址是从1开始,所以转换成索引应减1
+	releaseIP[3]-=1
+	// 释放IP，获得索引的方式是IP地址的每一位相减之后分别左移，将对应的数值加到索引上
+	for t := uint(4); t > 0; t-=1 {
+		c += int(releaseIP[t-1] - subnet.IP[t-1]) << ((4-t) * 8)
+	}
+    // 将分配的位图数组中索引位置的值置为0
+	ipalloc := []byte((*ipam.Subnets)[subnet.String()])
+	ipalloc[c] = '0'
+	(*ipam.Subnets)[subnet.String()] = string(ipalloc)
+    // 保存释放掉IP之后的网段分配信息
+	ipam.dump()
+	return nil
+}
+
+
+

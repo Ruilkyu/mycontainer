@@ -1,7 +1,7 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"os"
 )
@@ -22,6 +22,7 @@ func main(){
 		execCommand,
 		stopCommand,
 		removeCommand,
+		networkCommand,
 	}
 
 	app.Before = func(context *cli.Context) error {

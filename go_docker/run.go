@@ -4,10 +4,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"go_docker/container"
 	"go_docker/cgroups"
 	"go_docker/cgroups/subsystems"
+	"go_docker/network"
 	"math/rand"
 	"os"
 	"strconv"
@@ -27,7 +28,7 @@ import (
 
 
 
-func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, logfile bool, imageName string, envSlice []string) {
+func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, logfile bool, imageName string, envSlice []string, nw string, portmapping []string) {
 	containerID := randStringBytes(10)
 	if containerName == "" {
 		containerName = containerID
@@ -53,6 +54,21 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 	 defer cgroupManager.Destroy()
 	 cgroupManager.Set(res)
 	 cgroupManager.Apply(parent.Process.Pid)
+
+	 if nw != "" {
+		// config container network
+		network.Init()
+		containerInfo := &container.ContainerInfo{
+			Id:          containerID,
+			Pid:         strconv.Itoa(parent.Process.Pid),
+			Name:        containerName,
+			PortMapping: portmapping,
+		}
+		if err := network.Connect(nw, containerInfo); err != nil {
+			log.Errorf("Error Connect Network %v", err)
+			return
+		}
+	 }
 
 	 sendInitCommand(comArray, writePipe)
 
