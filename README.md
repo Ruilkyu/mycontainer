@@ -316,5 +316,22 @@ PING 10.200.0.3 (10.200.0.3) 56(84) bytes of data.
 3 packets transmitted, 3 received, 0% packet loss, time 1999ms
 rtt min/avg/max/mdev = 0.056/0.079/0.125/0.032 ms
 ```
+## 运行（访问容器外网络）
+```
+sh-4.2# cat ./etc/resolv.conf
+sh-4.2# echo "nameserver 114.114.114.114" > ./etc/resolv.conf
+sh-4.2# cat ./etc/resolv.conf
+nameserver 114.114.114.114
+sh-4.2# ping www.baidu.com
+PING www.wshifen.com (104.193.88.77) 56(84) bytes of data.
+64 bytes from 104.193.88.77 (104.193.88.77): icmp_seq=1 ttl=40 time=146 ms
+64 bytes from 104.193.88.77 (104.193.88.77): icmp_seq=2 ttl=40 time=146 ms
+64 bytes from 104.193.88.77 (104.193.88.77): icmp_seq=3 ttl=40 time=146 ms
+64 bytes from 104.193.88.77 (104.193.88.77): icmp_seq=4 ttl=40 time=146 ms
+^C
+--- www.wshifen.com ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 146.621/146.741/146.888/0.480 ms
+```
 
 
