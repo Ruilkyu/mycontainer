@@ -316,7 +316,7 @@ PING 10.200.0.3 (10.200.0.3) 56(84) bytes of data.
 3 packets transmitted, 3 received, 0% packet loss, time 1999ms
 rtt min/avg/max/mdev = 0.056/0.079/0.125/0.032 ms
 ```
-## 运行（访问容器外网络）
+## 运行（访问容器外网络功能）
 ```
 sh-4.2# cat ./etc/resolv.conf
 sh-4.2# echo "nameserver 114.114.114.114" > ./etc/resolv.conf
