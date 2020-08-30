@@ -1,5 +1,6 @@
 # mycontainer
-实现自己的容器引擎
+实现自己的容器引擎（参考自己动手写docker）
+AUFS改为OVERLAY2联合文件系统
 ## 编译
 ```
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
