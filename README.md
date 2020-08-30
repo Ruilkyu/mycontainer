@@ -1,6 +1,6 @@
-# mycontainer
-实现自己的容器引擎（参考自己动手写docker）
-AUFS改为OVERLAY2联合文件系统 
+# mycontainer（仅自己学习记录）
+实现自己的容器引擎（参考 自己动手写docker ）
+AUFS改为OVERLAY2联合文件系统实现
 功能模块实现参照各个分支
 ## 编译
 ```
